@@ -7,6 +7,8 @@ const writeJSON = async (filePath, jsonData) => {
     console.error("Error writing file:", err);
   }
 };
+
+//todo: các hàm fetch này viết thành 1 hàm riếng đc không , chỉ cần truyên path vào là lấy đc.
 const fetchUsersData = async () => {
   try {
     const response = await fetch("https://jsonplaceholder.typicode.com/users");
@@ -86,6 +88,7 @@ const getFormatData3 = async () => {
   return formatedData;
 };
 
+// todo thay vì write từng file mình truyền trên file cần write rồi gọi hàm luôn đc không , anh thấy hàm nó chức năng giống nhau mà viết di viết lại nhiều quá 
 const writeFile3 = async () => {
   const data = await getFormatData3();
   writeJSON("3.json", JSON.stringify(data));
@@ -112,6 +115,7 @@ const getFormatData4 = async () => {
   });
 
   // User with more than 3 comments
+  //todo return formatedData.filter((user) => user.comments.length > 3); return thế này luôn nhé , đỡ phải tạo thêm 1 biến nhé 
   const targetUser = formatedData.filter((user) => user.comments.length > 3);
   return targetUser;
 };
@@ -156,6 +160,8 @@ const getFormatData6 = async () => {
   const posts = await fetchPostsData();
   const comments = await fetchCommentsData();
 
+  //mình return luôn từ chỗ này đc không ? đỡ phải tạo thêm 1 biến 
+
   // Format Data
   const formatedData = users.map((user) => {
     // Create post array of this user
@@ -167,12 +173,14 @@ const getFormatData6 = async () => {
     return { ...user, posts: userPosts, comments: userComments };
   });
 
+  
   return formatedData;
 };
 
 const getHighest = async () => {
   const data = await getFormatData6();
   const sortByComments = data.sort((a, b) => {
+    // todo: nhiều if else quá , mình sử dụng mình if và return đc không ? 
     if (a.comments.length > b.comments.length) {
       return 1;
     } else if (a.comments.length < b.comments.length) {
@@ -182,6 +190,7 @@ const getHighest = async () => {
     }
   });
   const sortByPosts = data.sort((a, b) => {
+     // todo: nhiều if else quá , mình sử dụng mình if và return đc không ? 
     if (a.posts.length > b.posts.length) {
       return 1;
     } else if (a.posts.length < b.posts.length) {
@@ -228,6 +237,7 @@ const getFormatData7 = async () => {
 const getSortedData = async () => {
   const data = await getFormatData7();
   const sortByComments = data.sort((a, b) => {
+     // todo: nhiều if else quá , mình sử dụng mình if và return đc không ? 
     if (a.commentsCount.length > b.commentsCount.length) {
       return -1;
     } else if (a.commentsCount.length < b.commentsCount.length) {
