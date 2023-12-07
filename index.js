@@ -130,18 +130,17 @@ const getFormatData6 = async () => {
 };
 const getHighest = async () => {
   const data = await getFormatData6();
-  const sortByComments = data.sort((a, b) => {
-    return a.comments?.length > b.comments?.length;
-  });
-  const sortByPosts = data.sort((a, b) => {
-    return a.posts?.length > b.posts?.length;
-  });
-  const highestCommentsCount = sortByComments[data?.length - 1].comments?.length;
-  const highestPostsCount = sortByPosts[data?.length - 1].posts?.length;
-
+  const highestCommentsCount = data.reduce(
+    (max, user) => (user.comments.length > max ? user.comments.length : max),
+    0
+  );
+  const highestPostsCount = data.reduce(
+    (max, user) => (user.posts.length > max ? user.posts.length : max),
+    0
+  );
   const rawData = {
     mostCommentUsers: data.filter((user) => user.comments?.length === highestCommentsCount),
-    mostPostUsers: data.filter((user) => user.comments?.length === highestPostsCount),
+    mostPostUsers: data.filter((user) => user.posts?.length === highestPostsCount),
   };
   await writeJSON("6.json", rawData);
 };
@@ -186,8 +185,10 @@ getSortedData();
 // Task 8
 const getFormatData8 = async (id) => {
   // Get all data
-  const post = await fetchData(`/posts/${id}`);
-  const comments = await fetchData("/comments", { postId: id });
+  const [post, comments] = await Promise.all([
+    fetchData(`/posts/${id}`),
+    fetchData("/comments", { postId: id }),
+  ]);
 
   const rawData = { ...post, comments };
   writeJSON("8.json", rawData);
