@@ -1,6 +1,6 @@
 import fs from "fs/promises";
-const fetchData = async (endpoint, query) => {
-  const baseUrl = "https://jsonplaceholder.typicode.com";
+
+const queryStringify = (query) => {
   let queryString = "";
   if (query) {
     queryString += "?";
@@ -11,14 +11,13 @@ const fetchData = async (endpoint, query) => {
       }
     }
   }
-  try {
-    const response = await fetch(baseUrl + endpoint + queryString);
-    console.log(baseUrl + endpoint + queryString);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    throw new Error(error);
-  }
+  return queryString;
+};
+const fetchData = async (endpoint, query) => {
+  const baseUrl = "https://jsonplaceholder.typicode.com";
+  const response = await fetch(baseUrl + endpoint + queryStringify(query));
+  const data = await response.json();
+  return data;
 };
 const writeJSON = async (filePath, rawJsData) => {
   try {
@@ -31,105 +30,76 @@ const writeJSON = async (filePath, rawJsData) => {
 
 // Task 2
 const getUser = async () => {
-  console.log("Start fetching users data");
   const data = await fetchData("/users");
-  await writeJSON("2.json", data);
+  return data;
 };
-getUser();
+writeJSON("2.json", getUser());
 
 // Task 3
-const getFormatData3 = async () => {
+const getUsersWithCommentsAndPosts = async () => {
   // Get all data
-  const users = await fetchData("/users");
-  const posts = await fetchData("/posts");
-  const comments = await fetchData("/comments");
+  const [users, posts, comments] = await Promise.all([
+    fetchData("/users"),
+    fetchData("/posts"),
+    fetchData("/comments"),
+  ]);
 
   // Format Data
   const formatedData = users.map((user) => {
-    // Create post array of this user
     const userPosts = posts.filter((post) => post.userId === user.id);
-
-    // Filter all comments of all post of this user
     const userComments = comments.filter((comment) => comment.email === user.email);
-
     return { ...user, posts: userPosts, comments: userComments };
   });
-  await writeJSON("3.json", formatedData);
+  return formatedData;
 };
-getFormatData3();
 
+writeJSON("3.json", getUsersWithCommentsAndPosts());
 // Task 4
-const getFormatData4 = async () => {
+const getUsersWithMoreThan3Comments = async () => {
   // Get all data
-  const users = await fetchData("/users");
-  const posts = await fetchData("/posts");
-  const comments = await fetchData("/comments");
+  const [users, posts, comments] = await Promise.all([
+    fetchData("/users"),
+    fetchData("/posts"),
+    fetchData("/comments"),
+  ]);
 
   // Format Data
   const formatedData = users.map((user) => {
-    // Create post array of this user
     const userPosts = posts.filter((post) => post.userId === user.id);
-
-    // Filter all comments of all post of this user
     const userComments = comments.filter((comment) => comment.email === user.email);
 
     return { ...user, posts: userPosts, comments: userComments };
   });
 
   // User with more than 3 comments
-  await writeJSON(
-    "4.json",
-    formatedData.filter((user) => user.comments?.length > 3)
-  );
+
+  return formatedData.filter((user) => user.comments?.length > 3);
 };
-getFormatData4();
+writeJSON("4.json", getUsersWithMoreThan3Comments());
 
 // Task 5
-const getFormatData5 = async () => {
+const getUserWithPostAndCommentCount = async () => {
   // Get all data
-  const users = await fetchData("/users");
-  const posts = await fetchData("/posts");
-  const comments = await fetchData("/comments");
+  const [users, posts, comments] = await Promise.all([
+    fetchData("/users"),
+    fetchData("/posts"),
+    fetchData("/comments"),
+  ]);
 
   // Format Data
   const formatedData = users.map((user) => {
-    // Create post array of this user
     const userPosts = posts.filter((post) => post.userId === user.id);
-
-    // Filter all comments of all post of this user
     const userComments = comments.filter((comment) => comment.email === user.email);
-
     return { ...user, postsCount: userPosts?.length, commentsCount: userComments?.length };
   });
-  await writeJSON(
-    "5.json",
-    formatedData.filter((user) => user.comments?.length > 3)
-  );
-};
-getFormatData5();
-
-//Task 6
-const getFormatData6 = async () => {
-  // Get all data
-  const users = await fetchData("/users");
-  const posts = await fetchData("/posts");
-  const comments = await fetchData("/comments");
-
-  // Format Data
-  const formatedData = users.map((user) => {
-    // Create posts array of this user
-    const userPosts = posts.filter((post) => post.userId === user.id);
-
-    // Filter all comments of all posts of this user
-    const userComments = comments.filter((comment) => comment.email === user.email);
-
-    return { ...user, posts: userPosts, comments: userComments };
-  });
-
   return formatedData;
 };
+writeJSON("5.json", getUserWithPostAndCommentCount());
+
+//Task 6
+
 const getHighest = async () => {
-  const data = await getFormatData6();
+  const data = await getUsersWithCommentsAndPosts();
   const highestCommentsCount = data.reduce(
     (max, user) => (user.comments.length > max ? user.comments.length : max),
     0
@@ -142,32 +112,15 @@ const getHighest = async () => {
     mostCommentUsers: data.filter((user) => user.comments?.length === highestCommentsCount),
     mostPostUsers: data.filter((user) => user.posts?.length === highestPostsCount),
   };
-  await writeJSON("6.json", rawData);
+  return rawData;
 };
-getHighest();
+
+writeJSON("6.json", getHighest());
 
 // Task 7
-const getFormatData7 = async () => {
-  // Get all data
-  const users = await fetchData("/users");
-  const posts = await fetchData("/posts");
-  const comments = await fetchData("/comments");
 
-  // Format Data
-  const formatedData = users.map((user) => {
-    // Create post array of this user
-    const userPosts = posts.filter((post) => post.userId === user.id);
-
-    // Filter all comments of all post of this user
-    const userComments = comments.filter((comment) => comment.email === user.email);
-
-    return { ...user, postsCount: userPosts?.length, commentsCount: userComments?.length };
-  });
-
-  return formatedData;
-};
 const getSortedData = async () => {
-  const data = await getFormatData7();
+  const data = await getUserWithPostAndCommentCount();
   const sortByComments = data.sort((a, b) => {
     return a.commentsCount?.length < b.commentsCount?.length;
   });
@@ -178,19 +131,18 @@ const getSortedData = async () => {
     sortByComments,
     sortByPosts,
   };
-  await writeJSON("7.json", rawData);
+  return rawData;
 };
-getSortedData();
+writeJSON("7.json", getSortedData());
 
 // Task 8
-const getFormatData8 = async (id) => {
-  // Get all data
+const getPostWithComments = async (id) => {
   const [post, comments] = await Promise.all([
     fetchData(`/posts/${id}`),
     fetchData("/comments", { postId: id }),
   ]);
 
-  const rawData = { ...post, comments };
-  writeJSON("8.json", rawData);
+  return { ...post, comments };
 };
-getFormatData8(1);
+
+writeJSON("8.json", getPostWithComments(1));
